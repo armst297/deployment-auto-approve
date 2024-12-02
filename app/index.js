@@ -10,6 +10,20 @@ const octokit = github.getOctokit(GITHUB_TOKEN);
 const envIn = core.getInput('environment');
 console.log(`Auto approval requested for ${envIn} environment.`);
 
+// async lock to prevent overwriting of values
+class AsyncLock {
+  constructor () {
+    this.disable = () => {}
+    this.promise = Promise.resolve()
+  }
+
+  enable () {
+    this.promise = new Promise(resolve => this.disable = resolve)
+  }
+}
+
+const reviewerLock = new AsyncLock();
+
 async function run() {
 
     try {
@@ -34,6 +48,8 @@ async function run() {
                 // check if the current user is a reviewer for the environment
                 env.reviewers.forEach(async reviewerObj => {
                     // If the reviewer is a User
+                    await reviewerLock.promise
+                    reviewerLock.enable()
                     if (reviewerObj.type == 'User' && !isReviewer) {
                         envReviewers.push(reviewerObj.reviewer.login);
                         if (reviewerObj.reviewer.login == github.context.actor) {
@@ -53,12 +69,12 @@ async function run() {
                             console.log(` response: ${response.status}`);
                             if (response.status == 200) {
                                 isReviewer = true;
-                                console.log(`  ${github.context.actor} is in team ${reviewerObj.reviewer.slug} therefore is reviewer`)
                             }
                         }).catch((error) => {
                             console.log(` team membership check failed for ${github.context.actor} in team ${reviewerObj.reviewer.name}`);
                         });;
                     }
+                    reviewerLock.disable()
                 });
             }
         });
