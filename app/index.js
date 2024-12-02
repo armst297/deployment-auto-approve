@@ -42,7 +42,6 @@ async function run() {
                     }
                     // If the reviewer is a Team
                     if (reviewerObj.type === 'Team' && !isReviewer) {
-                        console.log(`  reviewer name: ${reviewerObj.reviewer.name}`)
                         envReviewers.push(reviewerObj.reviewer.name);
                         await octokit.rest.teams.getMembershipForUserInOrg({
                             org: github.context.repo.owner,
