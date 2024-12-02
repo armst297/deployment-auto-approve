@@ -10,21 +10,22 @@ const octokit = github.getOctokit(GITHUB_TOKEN);
 const envIn = core.getInput('environment');
 console.log(`Auto approval requested for ${envIn} environment.`);
 
+let env_id = [];
+let env_name = '';
+let envReviewers = [];
+let isReviewer = false;
+let isEnvFound = false;
+
 async function run() {
 
     try {
         // get all pending deployment reviews for the current workflow run
-        var response = await octokit.rest.actions.getPendingDeploymentsForRun({
+        let response = await octokit.rest.actions.getPendingDeploymentsForRun({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             run_id: github.context.runId
         });
 
-        var env_id = [];
-        var env_name = '';
-        var envReviewers = [];
-        var isReviewer = false;
-        var isEnvFound = false;
         response.data.forEach(env => {
             if (env.environment.name.toLowerCase() === envIn.toLowerCase()) {
                 isEnvFound = true;
@@ -63,7 +64,6 @@ async function run() {
             }
         });
 
-        console.log(`${envReviewers}`);
         console.log(`${isReviewer}`);
         // if the environment passed was not found in the list of environment to pre-approve
         if(!isEnvFound) {
@@ -76,7 +76,6 @@ async function run() {
             console.log(`ERROR: ${github.context.actor} is not a reviewer in ${envReviewers}`);         
             core.notice('Auto Approval Not Possible; current user is not a reviewer for the environment(s) - ' + env_name.trimEnd(','));
             core.info('Reviewers: ' + (envReviewers.join(',')));
-            return;
         } else {
             // Approve, in case of there is any pending review requests
             if (typeof env_id !== 'undefined' && env_id.length > 0) {
@@ -98,7 +97,7 @@ async function run() {
 
     } catch (error) {
         console.log(error);
-    };
+    }
 }
 
 // run the action code
