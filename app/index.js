@@ -40,7 +40,7 @@ async function run() {
         let isReviewer = false;
         let isEnvFound = false;
         response.data.forEach(env => {
-            if (env.environment.name.toLowerCase() == envIn.toLowerCase()) {
+            if (env.environment.name.toLowerCase() === envIn.toLowerCase()) {
                 isEnvFound = true;
                 env_id.push(env.environment.id);
                 env_name = env_name + env.environment.name + ',';
@@ -48,18 +48,17 @@ async function run() {
                 // check if the current user is a reviewer for the environment
                 env.reviewers.forEach(async reviewerObj => {
                     // If the reviewer is a User
-                    await reviewerLock.promise
-                    reviewerLock.enable()
+                    await reviewerLock.promise;
+                    reviewerLock.enable();
                     if (reviewerObj.type == 'User' && !isReviewer) {
                         envReviewers.push(reviewerObj.reviewer.login);
-                        if (reviewerObj.reviewer.login == github.context.actor) {
+                        if (reviewerObj.reviewer.login === github.context.actor) {
                             isReviewer = true;
                         }
                     }
                     // If the reviewer is a Team
-                    if (reviewerObj.type == 'Team' && !isReviewer) {
+                    if (reviewerObj.type === 'Team' && !isReviewer) {
                         envReviewers.push(reviewerObj.reviewer.name);
-                        console.log(`  check if ${github.context.actor} in team ${reviewerObj.reviewer.slug}`)
                         await octokit.rest.teams.getMembershipForUserInOrg({
                             org: github.context.repo.owner,
                             team_slug: reviewerObj.reviewer.slug,
@@ -67,19 +66,19 @@ async function run() {
                         }).then((response) => {
                             console.log(` team membership checked for ${github.context.actor} in team ${reviewerObj.reviewer.slug}`);
                             console.log(` response: ${response.status}`);
-                            if (response.status == 200) {
+                            if (response.status === 200) {
                                 isReviewer = true;
                             }
                         }).catch((error) => {
                             console.log(` team membership check failed for ${github.context.actor} in team ${reviewerObj.reviewer.name}`);
-                        });;
+                        });
                     }
-                    reviewerLock.disable()
+                    reviewerLock.disable();
                 });
             }
         });
 
-        console.log(`Is a reviewer: ${isReviewer}`)
+        console.log(`Is a reviewer: ${isReviewer}`);
         // if the environment passed was not found in the list of environment to pre-approve 
         if(!isEnvFound) {
             console.log(`ERROR: environment ${envIn} not found.`);
