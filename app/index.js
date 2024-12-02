@@ -11,7 +11,7 @@ const envIn = core.getInput('environment');
 console.log(`Auto approval requested for ${envIn} environment.`);
 
 async function run() {
-
+    debugger;
     try {
         // get all pending deployment reviews for the current workflow run
         let response = await octokit.rest.actions.getPendingDeploymentsForRun({
@@ -25,7 +25,9 @@ async function run() {
         let envReviewers = [];
         let isReviewer = false;
         let isEnvFound = false;
+        debugger;
         response.data.forEach(env => {
+            debugger;
             if (env.environment.name.toLowerCase() === envIn.toLowerCase()) {
                 isEnvFound = true;
                 env_id.push(env.environment.id);
@@ -63,6 +65,7 @@ async function run() {
                 });
             }
         });
+        debugger;
 
         console.log(`${envReviewers}`);
         console.log(`${isReviewer}`);
