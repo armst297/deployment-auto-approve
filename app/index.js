@@ -53,9 +53,11 @@ async function run() {
                             console.log(` response: ${response.status}`);
                             if (response.status === 200) {
                                 isReviewer = true;
+                                console.log(`  ${isReviewer}`);
                             }
                         }).catch((error) => {
                             console.log(` team membership check failed for ${github.context.actor} in team ${reviewerObj.reviewer.name}`);
+                            console.log(`  ${isReviewer}`);
                         });
                     }
                 });
