@@ -77,7 +77,6 @@ async function run() {
             console.log(`ERROR: ${github.context.actor} is not a reviewer in ${envReviewers}`);         
             core.notice('Auto Approval Not Possible; current user is not a reviewer for the environment(s) - ' + env_name.trimEnd(','));
             core.info('Reviewers: ' + (envReviewers.join(',')));
-            return;
         } else {
             // Approve, in case of there is any pending review requests
             if (typeof env_id !== 'undefined' && env_id.length > 0) {
@@ -93,13 +92,13 @@ async function run() {
                 // Adding to deployment Summary
                 core.summary.addHeading(' :white_check_mark: Auto Approval Status');
                 core.summary.addQuote('Auto-Approved by GitHub Action. Reviewer: ' + github.context.actor);
-                core.summary.write();
+                await core.summary.write();
             }
         }
 
     } catch (error) {
         console.log(error);
-    };
+    }
 }
 
 // run the action code
