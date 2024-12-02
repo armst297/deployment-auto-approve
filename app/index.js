@@ -10,20 +10,6 @@ const octokit = github.getOctokit(GITHUB_TOKEN);
 const envIn = core.getInput('environment');
 console.log(`Auto approval requested for ${envIn} environment.`);
 
-// async lock to prevent overwriting of values
-class AsyncLock {
-  constructor () {
-    this.disable = () => {}
-    this.promise = Promise.resolve()
-  }
-
-  enable () {
-    this.promise = new Promise(resolve => this.disable = resolve)
-  }
-}
-
-const reviewerLock = new AsyncLock();
-
 async function run() {
 
     try {
@@ -48,9 +34,7 @@ async function run() {
                 // check if the current user is a reviewer for the environment
                 env.reviewers.forEach(async reviewerObj => {
                     // If the reviewer is a User
-                    await reviewerLock.promise;
-                    reviewerLock.enable();
-                    if (reviewerObj.type == 'User' && !isReviewer) {
+                    if (reviewerObj.type === 'User' && !isReviewer) {
                         envReviewers.push(reviewerObj.reviewer.login);
                         if (reviewerObj.reviewer.login === github.context.actor) {
                             isReviewer = true;
@@ -58,6 +42,7 @@ async function run() {
                     }
                     // If the reviewer is a Team
                     if (reviewerObj.type === 'Team' && !isReviewer) {
+                        console.log(`  reviewer name: ${reviewerObj.reviewer.name}`)
                         envReviewers.push(reviewerObj.reviewer.name);
                         await octokit.rest.teams.getMembershipForUserInOrg({
                             org: github.context.repo.owner,
@@ -73,13 +58,12 @@ async function run() {
                             console.log(` team membership check failed for ${github.context.actor} in team ${reviewerObj.reviewer.name}`);
                         });
                     }
-                    reviewerLock.disable();
                 });
             }
         });
 
-        console.log(`Is a reviewer: ${isReviewer}`);
-        // if the environment passed was not found in the list of environment to pre-approve 
+        console.log(`${envReviewers}`);
+        // if the environment passed was not found in the list of environment to pre-approve
         if(!isEnvFound) {
             console.log(`ERROR: environment ${envIn} not found.`);
             core.warning(`env '${envIn}' is not part of the workflow or deployment was already approved by one of the reviewers`);
