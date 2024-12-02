@@ -65,6 +65,7 @@ async function run() {
         });
 
         console.log(`${envReviewers}`);
+        console.log(`${isReviewer}`);
         // if the environment passed was not found in the list of environment to pre-approve
         if(!isEnvFound) {
             console.log(`ERROR: environment ${envIn} not found.`);
