@@ -43,7 +43,7 @@ async function run() {
                     // If the reviewer is a Team
                     if (reviewerObj.type == 'Team' && !isReviewer) {
                         envReviewers.push(reviewerObj.reviewer.name);
-
+                        console.log(`  check if ${github.context.actor} in team ${reviewerObj.reviewer.slug}`)
                         await octokit.rest.teams.getMembershipForUserInOrg({
                             org: github.context.repo.owner,
                             team_slug: reviewerObj.reviewer.slug,
@@ -53,6 +53,7 @@ async function run() {
                             console.log(` response: ${response.status}`);
                             if (response.status == 200) {
                                 isReviewer = true;
+                                console.log(`  ${github.context.actor} is in team ${reviewerObj.reviewer.slug} therefore is reviewer`)
                             }
                         }).catch((error) => {
                             console.log(` team membership check failed for ${github.context.actor} in team ${reviewerObj.reviewer.name}`);
@@ -62,6 +63,7 @@ async function run() {
             }
         });
 
+        console.log(`Is a reviewer: ${isReviewer}`)
         // if the environment passed was not found in the list of environment to pre-approve 
         if(!isEnvFound) {
             console.log(`ERROR: environment ${envIn} not found.`);
